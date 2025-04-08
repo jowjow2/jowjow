@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Page</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h2>Login</h2>
+        <form action="/login" method="POST">
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" required>
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required>
+            <button type="submit">Login</button>
+        </form>
+
+        <!-- Show Logout Link if Logged In -->
+        <div id="logout-link" style="display: none;">
+            <p>You are logged in. <a href="/logout">Logout</a></p>
+        </div>
+    </div>
+
+    <script>
+        // Display the logout link if the user is logged in
+        window.onload = function() {
+            if (window.location.pathname === "/dashboard") {
+                document.getElementById("logout-link").style.display = "block";
+            }
+        };
+    </script>
+
+    <style type="text/css">body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    background-color: #f4f4f4;
+}
+
+.container {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    width: 300px;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+}
+
+input {
+    padding: 10px;
+    margin: 5px 0;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+button {
+    padding: 10px;
+    margin: 10px 0;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #45a049;
+}
+</style>
+
+<script type="text/javascript">const express = require('express');
+const bodyParser = require('body-parser');
+const session = require('express-session');
+
+const app = express();
+
+// Middleware
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(session({
+    secret: 'your-secret-key',
+    resave: false,
+    saveUninitialized: true
+}));
+
+// Serve static files (CSS, JS, etc.) from the public directory
+app.use(express.static('public'));
+
+// Simple user data (this can be replaced with a database)
+const users = {
+    'admin': 'password123'
+};
+
+// Route: Login page (GET)
+app.get('/', (req, res) => {
+    res.sendFile(__dirname + '/public/index.html');
+});
+
+// Route: Dashboard (only accessible if logged in)
+app.get('/dashboard', (req, res) => {
+    if (!req.session.username) {
+        return res.redirect('/');
+    }
+    res.send(`
+        <h2>Welcome, ${req.session.username}</h2>
+        <p><a href="/logout">Logout</a></p>
+    `);
+});
+
+// Route: Handle login (POST)
+app.post('/login', (req, res) => {
+    const { username, password } = req.body;
+
+    // Check if the username and password match
+    if (users[username] && users[username] === password) {
+        req.session.username = username;
+        return res.redirect('/dashboard');
+    } else {
+        return res.send('Invalid username or password');
+    }
+});
+
+// Route: Logout
+app.get('/logout', (req, res) => {
+    req.session.destroy(() => {
+        res.redirect('/');
+    });
+});
+
+// Start the server
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+});
+</script>
+
+</body>
+</html>
